@@ -21,7 +21,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #f3f4f6;
             margin: 0;
-            padding: 16px;
+            padding: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -31,11 +31,11 @@
         
         #workspace {
             width: 100%;
-            max-width: 440px;
+            max-width: 500_px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            transition: all 0.2s ease-in-out;
+            align-items: center;
+            gap: 10px; /* Tight layout convergence */
         }
 
         /* Interactive Interface Masking Layer */
@@ -53,8 +53,10 @@
             display: flex;
             justify-content: center;
             gap: 24px;
+            width: 100%;
             border-bottom: 1px dashed #1f2937;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
         }
         .station-btn {
             font-family: monospace;
@@ -70,24 +72,25 @@
             text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
         }
 
-        /* Giant Chrono Layout core */
+        /* Massive Primary Chrono Layout Core */
         .time-display {
             display: flex;
             align-items: baseline;
             justify-content: center;
             font-weight: 200;
-            letter-spacing: -3px;
+            letter-spacing: -4px;
+            margin-bottom: 4px;
         }
         #time-digits {
-            font-size: calc(5rem + 2vw);
+            font-size: 8.5rem; /* Forced massive print size scale */
             color: #ffffff;
-            line-height: 0.95;
+            line-height: 0.85;
         }
         #sec-digits {
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             color: #00ff66;
             font-family: monospace;
-            margin-left: 4px;
+            margin-left: 6px;
             letter-spacing: 0;
         }
 
@@ -95,13 +98,15 @@
         .metrics-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            width: 100%;
+            max-width: 380px; /* Snugs the lists up horizontally */
         }
         .metric-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 4px 0;
             border-bottom: 1px solid #111622;
         }
         .m-label {
@@ -111,7 +116,7 @@
             letter-spacing: 0.5px;
         }
         .m-val {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 400;
         }
         .m-val.highlight {
@@ -133,40 +138,7 @@
             font-family: monospace;
             letter-spacing: 0.5px;
             margin-top: 4px;
-        }
-
-        /* Corrected Landscape Orientation Reflow Matrix */
-        @media (orientation: landscape) {
-            body {
-                padding: 12px;
-            }
-            #workspace {
-                max-width: 680px;
-                display: grid;
-                grid-template-columns: 1.2fr 1fr;
-                column-gap: 36px;
-                row-gap: 8px;
-                align-items: center;
-            }
-            .station-selector {
-                grid-column: span 2;
-                padding-bottom: 8px;
-                margin-bottom: 0;
-            }
-            .time-display {
-                justify-content: center;
-            }
-            #time-digits {
-                font-size: calc(5.5rem + 2vw);
-            }
-            .metrics-list {
-                gap: 6px;
-            }
-            .config-trigger {
-                grid-column: span 2;
-                margin-top: 0;
-                padding: 2px;
-            }
+            width: 100%;
         }
     </style>
 </head>
@@ -217,7 +189,7 @@
         localStorage.setItem('terminal_home_zip', homeZip);
     }
 
-    // Tapping blank background cleanly wipes menus and config bars out of view
+    // Tapping blank background cleanly wipes menus and config bars completely out of view
     function toggleZenDisplay() {
         isZenActive = !isZenActive;
         const workspace = document.getElementById("workspace");
