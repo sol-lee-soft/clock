@@ -1,5 +1,7 @@
 # Desk Terminal / Mobile Dashboard
 
+[![Launch Terminal](https://img.shields.io/badge/LAUNCH-TERMINAL-00ff66?style=for-the-badge&logo=opsgenie&logoColor=black&labelColor=111318)](clock.html)
+
 A minimalist, high-contrast standalone web terminal designed to function as a low-glare desk clock or an on-the-road dashboard widget. Optimized specifically for mobile screen boundaries and responsive touch-control layouts.
 
 ## Key Features
