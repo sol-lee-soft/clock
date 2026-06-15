@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Terminal">
     
     <title>Desk Terminal</title>
     <style>
@@ -16,11 +17,11 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #000000; /* Pure black backdrop for crisp OLED contrast */
+            background-color: #000000; /* True black backdrop for seamless OLED borders */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #f3f4f6;
             margin: 0;
-            padding: 12px;
+            padding: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -33,17 +34,27 @@
             max-width: 440px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+            transition: all 0.2s ease-in-out;
         }
 
-        /* Station Segment Selector Headers */
+        /* Interactive Interface Masking Layer */
+        .zen-hidden {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .zen-active .zen-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Station Switch Header */
         .station-selector {
             display: flex;
             justify-content: center;
             gap: 24px;
             border-bottom: 1px dashed #1f2937;
-            padding-bottom: 8px;
-            margin-bottom: 4px;
+            padding-bottom: 10px;
         }
         .station-btn {
             font-family: monospace;
@@ -59,7 +70,7 @@
             text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
         }
 
-        /* Massive Primary Chrono Core Display */
+        /* Giant Chrono Layout core */
         .time-display {
             display: flex;
             align-items: baseline;
@@ -68,29 +79,29 @@
             letter-spacing: -3px;
         }
         #time-digits {
-            font-size: calc(5.5rem + 2vw);
+            font-size: calc(5rem + 2vw);
             color: #ffffff;
             line-height: 0.95;
         }
         #sec-digits {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #00ff66;
             font-family: monospace;
             margin-left: 4px;
             letter-spacing: 0;
         }
 
-        /* Highly Compacted Atmospheric Rows */
+        /* Compact Uniform Atmospheric Grid Rows */
         .metrics-list {
             display: flex;
             flex-direction: column;
-            gap: 6px; /* Tight grid convergence */
+            gap: 8px;
         }
         .metric-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 4px 0; /* Minimal vertical footprint padding */
+            padding: 6px 0;
             border-bottom: 1px solid #111622;
         }
         .m-label {
@@ -112,7 +123,7 @@
             font-family: monospace;
         }
 
-        /* Hide-and-Seek Setup Footer Segment */
+        /* Configuration Setup Footer Link */
         .config-trigger {
             text-align: center;
             font-size: 0.72rem;
@@ -121,42 +132,35 @@
             padding: 6px;
             font-family: monospace;
             letter-spacing: 0.5px;
-            transition: opacity 0.2s ease-in-out;
-            opacity: 1;
             margin-top: 4px;
         }
-        .config-trigger.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
 
-        /* Landscape Orientation Dynamic Layout Reflow Matrix */
+        /* Corrected Landscape Orientation Reflow Matrix */
         @media (orientation: landscape) {
             body {
-                padding: 8px;
+                padding: 12px;
             }
             #workspace {
                 max-width: 680px;
                 display: grid;
-                grid-template-columns: 1.1fr 1fr;
-                column-gap: 32px;
-                row-gap: 4px;
+                grid-template-columns: 1.2fr 1fr;
+                column-gap: 36px;
+                row-gap: 8px;
                 align-items: center;
             }
             .station-selector {
                 grid-column: span 2;
-                padding-bottom: 6px;
+                padding-bottom: 8px;
                 margin-bottom: 0;
             }
             .time-display {
                 justify-content: center;
-                margin-bottom: 0;
             }
             #time-digits {
-                font-size: calc(6rem + 1vw);
+                font-size: calc(5.5rem + 2vw);
             }
             .metrics-list {
-                gap: 4px;
+                gap: 6px;
             }
             .config-trigger {
                 grid-column: span 2;
@@ -166,11 +170,11 @@
         }
     </style>
 </head>
-<body onclick="toggleConfigDisplay()">
+<body onclick="toggleZenDisplay()">
 
 <div id="workspace">
 
-    <div class="station-selector">
+    <div class="station-selector zen-hidden">
         <div id="btn-home" class="station-btn active" onclick="switchStation('home', event)">[ HOME ]</div>
         <div id="btn-local" class="station-btn" onclick="switchStation('local', event)">[ LOCAL ]</div>
     </div>
@@ -198,7 +202,7 @@
         </div>
     </div>
 
-    <div class="config-trigger" id="config-footer" onclick="editHomeZip(event)">
+    <div class="config-trigger zen-hidden" id="config-footer" onclick="editHomeZip(event)">
         [ edit home base zip code ]
     </div>
 </div>
@@ -206,4 +210,144 @@
 <script>
     let currentMode = "home"; 
     let homeZip = localStorage.getItem('terminal_home_zip');
-    let footerVisible
+    let isZenActive = false;
+
+    if (!homeZip) {
+        homeZip = "94505";
+        localStorage.setItem('terminal_home_zip', homeZip);
+    }
+
+    // Tapping blank background cleanly wipes menus and config bars out of view
+    function toggleZenDisplay() {
+        isZenActive = !isZenActive;
+        const workspace = document.getElementById("workspace");
+        const footer = document.getElementById("config-footer");
+        
+        if (isZenActive) {
+            workspace.classList.add("zen-active");
+            footer.style.display = "none";
+        } else {
+            workspace.classList.remove("zen-active");
+            if (currentMode === "home") {
+                footer.style.display = "block";
+            }
+        }
+    }
+
+    function tick() {
+        const now = new Date();
+        let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+        
+        h = h % 12; h = h ? h : 12;
+        m = m < 10 ? '0' + m : m; s = s < 10 ? '0' + s : s;
+
+        document.getElementById("time-digits").innerText = `${h}:${m}`;
+        document.getElementById("sec-digits").innerText = s;
+
+        if (m === 0 && s === 0) {
+            updateAtmosphereFeed();
+        }
+    }
+
+    function switchStation(targetMode, event) {
+        if (event) event.stopPropagation(); // Block background text blank clicks
+        if (currentMode === targetMode) return;
+        currentMode = targetMode;
+
+        document.getElementById("btn-home").classList.toggle("active", currentMode === "home");
+        document.getElementById("btn-local").classList.toggle("active", currentMode === "local");
+        
+        const footer = document.getElementById("config-footer");
+        if (currentMode === "local") {
+            footer.style.display = "none";
+        } else if (!isZenActive) {
+            footer.style.display = "block";
+        }
+        
+        updateAtmosphereFeed();
+    }
+
+    function editHomeZip(event) {
+        if (event) event.stopPropagation(); // Protect visibility routine loops
+        const res = prompt("Enter 5-Digit HOME Base ZIP Code:", homeZip);
+        if (res && res.length === 5 && !isNaN(res)) {
+            homeZip = res;
+            localStorage.setItem('terminal_home_zip', homeZip);
+            if (currentMode === "home") updateAtmosphereFeed();
+        }
+    }
+
+    function updateAtmosphereFeed() {
+        if (currentMode === "home") {
+            fetchHomeWeather();
+        } else {
+            fetchGpsLocalWeather();
+        }
+    }
+
+    async function fetchHomeWeather() {
+        try {
+            document.getElementById("data-cond").innerText = "Syncing Home...";
+            const geoRes = await fetch(`https://api.zippopotam.us/us/${homeZip}`);
+            if (!geoRes.ok) throw new Error();
+            const geoData = await geoRes.json();
+            
+            const lat = geoData.places[0].latitude;
+            const lon = geoData.places[0].longitude;
+            
+            fetchRadarMetrics(lat, lon);
+        } catch {
+            document.getElementById("data-cond").innerText = "Home Address Error";
+        }
+    }
+
+    function fetchGpsLocalWeather() {
+        if (!navigator.geolocation) {
+            document.getElementById("data-cond").innerText = "No GPS Capability";
+            return;
+        }
+
+        document.getElementById("data-cond").innerText = "Searching Satellites...";
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                fetchRadarMetrics(position.coords.latitude, position.coords.longitude);
+            },
+            () => {
+                document.getElementById("data-cond").innerText = "GPS Tracking Banned";
+            },
+            { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 }
+        );
+    }
+
+    async function fetchRadarMetrics(lat, lon) {
+        try {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code&temperature_unit=fahrenheit`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const current = data.current;
+
+            const wmoCodes = {
+                0: "Clear Sky ☀️", 1: "Mainly Clear 🌤️", 2: "Partly Cloudy ⛅", 3: "Overcast ☁️",
+                45: "Foggy 🌫️", 51: "Light Drizzle 🌧️", 61: "Slight Rain 🌧️", 63: "Moderate Rain 🌧️",
+                65: "Heavy Rain 🌧️", 71: "Slight Snow ❄️", 80: "Rain Showers 🌦️", 95: "Thunderstorm 🌩️"
+            };
+
+            const hpaToInches = (current.surface_pressure * 0.02953).toFixed(2);
+            document.getElementById("data-temp").innerText = `${Math.round(current.temperature_2m)}°F`;
+            document.getElementById("data-cond").innerText = wmoCodes[current.weather_code] || "Clear Sky ☀️";
+            document.getElementById("data-humid").innerText = `${current.relative_humidity_2m}%`;
+            document.getElementById("data-baro").innerText = `${hpaToInches} IN`;
+
+        } catch (err) {
+            document.getElementById("data-cond").innerText = "Server Timeout";
+        }
+    }
+
+    setInterval(tick, 1000);
+    tick();
+    updateAtmosphereFeed();
+</script>
+
+</body>
+</html>
