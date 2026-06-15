@@ -1,6 +1,6 @@
 # Desk Clock/Weather Station
 
-[!\[Launch Terminal](https://img.shields.io/badge/LAUNCH-TERMINAL-00ff66?style=for-the-badge\&logo=opsgenie\&logoColor=black\&labelColor=111318)](https://sol-lee-soft.github.io/clock/index.html)
+[![[Launch Terminal](https://img.shields.io/badge/LAUNCH-TERMINAL-00ff66?style=for-the-badge\&logo=opsgenie\&logoColor=black\&labelColor=111318)](https://sol-lee-soft.github.io/clock/index.html)
 
 A minimalist, high-contrast standalone web terminal designed to function as a low-glare desk clock/weather station. Optimized specifically for mobile screen boundaries and responsive touch-control layouts.
 
