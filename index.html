@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <title>Desk Terminal</title>
     <style>
         * {
@@ -11,16 +16,16 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #060709;
+            background-color: #000000; /* Pure black backdrop for crisp OLED contrast */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #f3f4f6;
             margin: 0;
-            padding: 20px;
+            padding: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            transition: background-color 0.4s ease;
+            overflow: hidden;
         }
         
         #workspace {
@@ -28,37 +33,17 @@
             max-width: 440px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            transition: all 0.3s ease;
+            gap: 12px;
         }
 
-        /* Interface Toggle Animation Classes */
-        .zen-active .hide-on-zen {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        
-        .hide-on-zen {
-            transition: opacity 0.25s ease-in-out;
-        }
-
-        /* Nav Header Line */
-        .status-row {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 0.75rem;
-            color: #4b5563;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-
-        /* Dual Station Segment Controller */
+        /* Station Segment Selector Headers */
         .station-selector {
             display: flex;
             justify-content: center;
             gap: 24px;
             border-bottom: 1px dashed #1f2937;
-            padding-bottom: 12px;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
         }
         .station-btn {
             font-family: monospace;
@@ -74,53 +59,51 @@
             text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
         }
 
-        /* Giant Chrono Center */
+        /* Massive Primary Chrono Core Display */
         .time-display {
             display: flex;
             align-items: baseline;
             justify-content: center;
             font-weight: 200;
-            letter-spacing: -2px;
+            letter-spacing: -3px;
         }
         #time-digits {
-            font-size: 5.5rem;
+            font-size: calc(5.5rem + 2vw); /* High scale expansion priority */
             color: #ffffff;
-            line-height: 1;
+            line-height: 0.95;
         }
         #sec-digits {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             color: #00ff66;
             font-family: monospace;
-            margin-left: 6px;
+            margin-left: 4px;
+            letter-spacing: 0;
         }
 
-        /* Massive Primary Temp Display Block */
-        .primary-temp-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: -10px;
-            margin-bottom: 5px;
+        /* Restored Temperature Formatting Block */
+        .metric-item.main-temp {
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 8px;
+            margin-bottom: 2px;
         }
-        #data-temp {
-            font-size: 4rem;
-            font-weight: 300;
+        .m-val.highlight {
             color: #ff00ff;
-            text-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-            line-height: 1;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+            font-size: 1.6rem;
+            font-weight: 500;
         }
 
-        /* Tightened Atmosphere Metric Rows */
+        /* Highly Compacted Atmospheric Secondary Rows */
         .metrics-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px; /* Tight grid convergence */
         }
         .metric-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 4px 0; /* Minimal vertical footprint padding */
             border-bottom: 1px solid #111622;
         }
         .m-label {
@@ -131,92 +114,85 @@
         }
         .m-val {
             font-size: 1.2rem;
-            font-weight: 500;
+            font-weight: 400;
         }
         .m-val.accent {
             color: #00ff66;
             font-family: monospace;
         }
 
-        /* Console Footer Configuration Track */
+        /* Hide-and-Seek Setup Footer Segment */
         .config-trigger {
             text-align: center;
             font-size: 0.72rem;
-            color: #4b5563;
+            color: #374151;
             cursor: pointer;
-            padding: 4px;
+            padding: 6px;
             font-family: monospace;
             letter-spacing: 0.5px;
-            transition: color 0.2s;
+            transition: opacity 0.2s ease-in-out;
+            opacity: 1;
+            margin-top: 4px;
         }
-        .config-trigger:hover {
-            color: #9ca3af;
+        .config-trigger.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
-        /* Landscape Orientation Rules Override Matrix */
+        /* Landscape Orientation Dynamic Layout Reflow Matrix */
         @media (orientation: landscape) {
             body {
-                padding: 15px;
+                padding: 8px;
             }
             #workspace {
-                max-width: 720px;
+                max-width: 680px;
                 display: grid;
-                grid-template-columns: 1.2fr 1fr;
-                column-gap: 40px;
-                row-gap: 10px;
+                grid-template-columns: 1.1fr 1fr;
+                column-gap: 32px;
+                row-gap: 4px;
                 align-items: center;
-            }
-            .status-row {
-                grid-column: span 2;
             }
             .station-selector {
                 grid-column: span 2;
-                padding-bottom: 8px;
-                margin-bottom: -10px;
+                padding-bottom: 6px;
+                margin-bottom: 0;
             }
-            .main-chrono-group {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+            .time-display {
                 justify-content: center;
+                margin-bottom: 0;
             }
             #time-digits {
-                font-size: 6rem;
-            }
-            #data-temp {
-                font-size: 4.5rem;
+                font-size: calc(6rem + 1vw);
             }
             .metrics-list {
-                gap: 8px;
+                gap: 4px;
             }
             .config-trigger {
                 grid-column: span 2;
+                margin-top: 0;
+                padding: 2px;
             }
         }
     </style>
 </head>
-<body onclick="toggleZenMode(event)">
+<body onclick="toggleConfigDisplay()">
 
 <div id="workspace">
-    <div class="status-row hide-on-zen">
-        <div id="active-station-tag">STATION // HOME</div>
-    </div>
 
-    <div class="station-selector hide-on-zen">
+    <div class="station-selector">
         <div id="btn-home" class="station-btn active" onclick="switchStation('home', event)">[ HOME ]</div>
         <div id="btn-local" class="station-btn" onclick="switchStation('local', event)">[ LOCAL ]</div>
     </div>
     
-    <div class="main-chrono-group">
-        <div class="time-display">
-            <span id="time-digits">00:00</span><span id="sec-digits">00</span>
-        </div>
-        <div class="primary-temp-container">
-            <div id="data-temp">--°F</div>
-        </div>
+    <div class="time-display">
+        <span id="time-digits">00:00</span><span id="sec-digits">00</span>
     </div>
 
     <div class="metrics-list">
+        <div class="metric-item main-temp">
+            <div class="m-label">Temperature</div>
+            <div class="m-val highlight" id="data-temp">--°F</div>
+        </div>
         <div class="metric-item">
             <div class="m-label">Sky Condition</div>
             <div class="m-val" id="data-cond">Syncing...</div>
@@ -231,7 +207,7 @@
         </div>
     </div>
 
-    <div class="config-trigger hide-on-zen" id="config-footer" onclick="editHomeZip(event)">
+    <div class="config-trigger" id="config-footer" onclick="editHomeZip(event)">
         [ edit home base zip code ]
     </div>
 </div>
@@ -239,27 +215,23 @@
 <script>
     let currentMode = "home"; 
     let homeZip = localStorage.getItem('terminal_home_zip');
-    let isZenMode = false;
+    let footerVisible = true;
 
     if (!homeZip) {
         homeZip = "94505";
         localStorage.setItem('terminal_home_zip', homeZip);
     }
 
-    // Zen Mode Workspace Masking Trigger
-    function toggleZenMode(event) {
-        // Prevent activation if clicking intentional configuration triggers
-        if (event.target.closest('.station-btn') || event.target.closest('#config-footer')) {
-            return;
-        }
+    // Toggle the configuration link on/off when workspace is tapped
+    function toggleConfigDisplay() {
+        if (currentMode === "local") return; // Keep clean if running on auto GPS tracking anyway
         
-        isZenMode = !isZenMode;
-        if (isZenMode) {
-            document.body.classList.add("zen-active");
-            document.body.style.backgroundColor = "#000000"; // Deep true-black drop for OLED power savings
+        footerVisible = !footerVisible;
+        const footer = document.getElementById("config-footer");
+        if (footerVisible) {
+            footer.classList.remove("hidden");
         } else {
-            document.body.classList.remove("zen-active");
-            document.body.style.backgroundColor = "#060709";
+            footer.classList.add("hidden");
         }
     }
 
@@ -279,27 +251,25 @@
     }
 
     function switchStation(targetMode, event) {
-        if (event) event.stopPropagation(); // Stop background trigger firing zen mode
+        if (event) event.stopPropagation(); // Stop background trigger firing toggles
         if (currentMode === targetMode) return;
         currentMode = targetMode;
 
         document.getElementById("btn-home").classList.toggle("active", currentMode === "home");
         document.getElementById("btn-local").classList.toggle("active", currentMode === "local");
         
-        document.getElementById("active-station-tag").innerText = `STATION // ${currentMode.toUpperCase()}`;
-        
+        const footer = document.getElementById("config-footer");
         if (currentMode === "local") {
-            document.getElementById("config-footer").style.visibility = "hidden";
-        } else {
-            document.getElementById("config-footer").style.visibility = "visible";
-            document.getElementById("config-footer").innerText = `[ edit home base zip code ]`;
+            footer.classList.add("hidden");
+        } else if (footerVisible) {
+            footer.classList.remove("hidden");
         }
-
+        
         updateAtmosphereFeed();
     }
 
     function editHomeZip(event) {
-        if (event) event.stopPropagation();
+        if (event) event.stopPropagation(); // Protect visibility configuration loops
         const res = prompt("Enter 5-Digit HOME Base ZIP Code:", homeZip);
         if (res && res.length === 5 && !isNaN(res)) {
             homeZip = res;
