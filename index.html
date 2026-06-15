@@ -9,6 +9,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Terminal">
     
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Desk%20Terminal%22,%22short_name%22:%22Terminal%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22}">
+    
     <title>Desk Terminal</title>
     <style>
         * {
@@ -17,7 +19,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #000000; /* True black backdrop for seamless OLED borders */
+            background-color: #000000; /* Pure black for edge-to-edge OLED matching */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #f3f4f6;
             margin: 0;
@@ -31,45 +33,22 @@
         
         #workspace {
             width: 100%;
-            max-width: 500_px;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px; /* Tight layout convergence */
+            gap: 10px;
         }
 
-        /* Interactive Interface Masking Layer */
+        /* Clean Interface Animation Classes */
         .zen-hidden {
             opacity: 1;
-            transition: opacity 0.2s ease-in-out;
+            visibility: visible;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s;
         }
         .zen-active .zen-hidden {
             opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
-        /* Station Switch Header */
-        .station-selector {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            width: 100%;
-            border-bottom: 1px dashed #1f2937;
-            padding-bottom: 8px;
-            margin-bottom: 4px;
-        }
-        .station-btn {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #4b5563;
-            cursor: pointer;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-            transition: all 0.2s;
-        }
-        .station-btn.active {
-            color: #00ff66;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+            visibility: hidden !important;
         }
 
         /* Massive Primary Chrono Layout Core */
@@ -82,7 +61,7 @@
             margin-bottom: 4px;
         }
         #time-digits {
-            font-size: 8.5rem; /* Forced massive print size scale */
+            font-size: 8.5rem;
             color: #ffffff;
             line-height: 0.85;
         }
@@ -100,7 +79,7 @@
             flex-direction: column;
             gap: 6px;
             width: 100%;
-            max-width: 380px; /* Snugs the lists up horizontally */
+            max-width: 380px;
         }
         .metric-item {
             display: flex;
@@ -128,28 +107,37 @@
             font-family: monospace;
         }
 
-        /* Configuration Setup Footer Link */
-        .config-trigger {
+        /* Consolidated Single-Line Control Footer */
+        .control-footer {
             text-align: center;
-            font-size: 0.72rem;
-            color: #374151;
-            cursor: pointer;
-            padding: 6px;
+            font-size: 0.75rem;
+            color: #4b5563;
+            padding: 8px;
             font-family: monospace;
             letter-spacing: 0.5px;
-            margin-top: 4px;
+            margin-top: 6px;
             width: 100%;
+            border-top: 1px dashed #1f2937;
+        }
+        .action-link {
+            color: #00ff66;
+            cursor: pointer;
+            margin-left: 8px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .action-link:hover {
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+        }
+        .action-link.edit-btn {
+            color: #9ca3af;
+            margin-left: 12px;
         }
     </style>
 </head>
 <body onclick="toggleZenDisplay()">
 
 <div id="workspace">
-
-    <div class="station-selector zen-hidden">
-        <div id="btn-home" class="station-btn active" onclick="switchStation('home', event)">[ HOME ]</div>
-        <div id="btn-local" class="station-btn" onclick="switchStation('local', event)">[ LOCAL ]</div>
-    </div>
     
     <div class="time-display">
         <span id="time-digits">00:00</span><span id="sec-digits">00</span>
@@ -174,13 +162,15 @@
         </div>
     </div>
 
-    <div class="config-trigger zen-hidden" id="config-footer" onclick="editHomeZip(event)">
-        [ edit home base zip code ]
+    <div class="control-footer zen-hidden" id="control-bar">
+        <span id="status-string">STATION: HOME</span>
+        <span id="toggle-action" class="action-link" onclick="toggleTrackingMode(event)">[SWITCH TO LOCAL]</span>
+        <span id="edit-action" class="action-link edit-btn" onclick="editHomeZip(event)">[EDIT ZIP]</span>
     </div>
 </div>
 
 <script>
-    let currentMode = "home"; 
+    let currentMode = localStorage.getItem('terminal_mode') || "home"; // Remembers last picked mode on reload
     let homeZip = localStorage.getItem('terminal_home_zip');
     let isZenActive = false;
 
@@ -189,20 +179,14 @@
         localStorage.setItem('terminal_home_zip', homeZip);
     }
 
-    // Tapping blank background cleanly wipes menus and config bars completely out of view
+    // Clear Workspace Toggle: Masks the control line completely out of view when background is clicked
     function toggleZenDisplay() {
         isZenActive = !isZenActive;
         const workspace = document.getElementById("workspace");
-        const footer = document.getElementById("config-footer");
-        
         if (isZenActive) {
             workspace.classList.add("zen-active");
-            footer.style.display = "none";
         } else {
             workspace.classList.remove("zen-active");
-            if (currentMode === "home") {
-                footer.style.display = "block";
-            }
         }
     }
 
@@ -221,26 +205,36 @@
         }
     }
 
-    function switchStation(targetMode, event) {
-        if (event) event.stopPropagation(); // Block background text blank clicks
-        if (currentMode === targetMode) return;
-        currentMode = targetMode;
-
-        document.getElementById("btn-home").classList.toggle("active", currentMode === "home");
-        document.getElementById("btn-local").classList.toggle("active", currentMode === "local");
+    // Handles switching between Home and Local GPS tracking within the single bottom line
+    function toggleTrackingMode(event) {
+        if (event) event.stopPropagation(); // Prevent background click from firing zen mask
         
-        const footer = document.getElementById("config-footer");
-        if (currentMode === "local") {
-            footer.style.display = "none";
-        } else if (!isZenActive) {
-            footer.style.display = "block";
-        }
+        currentMode = (currentMode === "home") ? "local" : "home";
+        localStorage.setItem('terminal_mode', currentMode);
         
+        renderControlBar();
         updateAtmosphereFeed();
     }
 
+    // Renders the correct text options onto the unified single-line footer row
+    function renderControlBar() {
+        const statusStr = document.getElementById("status-string");
+        const toggleBtn = document.getElementById("toggle-action");
+        const editBtn = document.getElementById("edit-action");
+
+        if (currentMode === "home") {
+            statusStr.innerText = "STATION: HOME";
+            toggleBtn.innerText = "[SWITCH TO LOCAL]";
+            editBtn.style.display = "inline-block";
+        } else {
+            statusStr.innerText = "STATION: LOCAL";
+            toggleBtn.innerText = "[SWITCH TO HOME]";
+            editBtn.style.display = "none"; // Hide edit link when relying on live raw GPS coordinates
+        }
+    }
+
     function editHomeZip(event) {
-        if (event) event.stopPropagation(); // Protect visibility routine loops
+        if (event) event.stopPropagation(); // Block layout structure click bubbling
         const res = prompt("Enter 5-Digit HOME Base ZIP Code:", homeZip);
         if (res && res.length === 5 && !isNaN(res)) {
             homeZip = res;
@@ -269,7 +263,7 @@
             
             fetchRadarMetrics(lat, lon);
         } catch {
-            document.getElementById("data-cond").innerText = "Home Address Error";
+            document.getElementById("data-cond").innerText = "Location Error";
         }
     }
 
@@ -286,7 +280,7 @@
                 fetchRadarMetrics(position.coords.latitude, position.coords.longitude);
             },
             () => {
-                document.getElementById("data-cond").innerText = "GPS Tracking Banned";
+                document.getElementById("data-cond").innerText = "GPS Banned";
             },
             { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 }
         );
@@ -318,6 +312,7 @@
 
     setInterval(tick, 1000);
     tick();
+    renderControlBar();
     updateAtmosphereFeed();
 </script>
 
