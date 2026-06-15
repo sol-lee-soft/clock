@@ -8,8 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Terminal">
-    
-    <link rel="manifest" href="data:application/json,{%22name%22:%22Desk%20Terminal%22,%22short_name%22:%22Terminal%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22}">
+    <meta name="theme-color" content="#000000">
     
     <title>Desk Terminal</title>
     <style>
@@ -19,7 +18,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #000000; /* Pure black for edge-to-edge OLED matching */
+            background-color: #000000; /* Pure black matrix background */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #f3f4f6;
             margin: 0;
@@ -40,7 +39,7 @@
             gap: 10px;
         }
 
-        /* Clean Interface Animation Classes */
+        /* Pure Overlay Visibility Control Toggle */
         .zen-hidden {
             opacity: 1;
             visibility: visible;
@@ -51,7 +50,7 @@
             visibility: hidden !important;
         }
 
-        /* Massive Primary Chrono Layout Core */
+        /* Massive Primary Digital Clock Print */
         .time-display {
             display: flex;
             align-items: baseline;
@@ -70,10 +69,9 @@
             color: #00ff66;
             font-family: monospace;
             margin-left: 6px;
-            letter-spacing: 0;
         }
 
-        /* Compact Uniform Atmospheric Grid Rows */
+        /* Tight Consolidated Weather Matrix Rows */
         .metrics-list {
             display: flex;
             flex-direction: column;
@@ -107,7 +105,7 @@
             font-family: monospace;
         }
 
-        /* Consolidated Single-Line Control Footer */
+        /* Single-Line Combined Base Control Strip */
         .control-footer {
             text-align: center;
             font-size: 0.75rem;
@@ -126,9 +124,6 @@
             font-weight: bold;
             display: inline-block;
         }
-        .action-link:hover {
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
-        }
         .action-link.edit-btn {
             color: #9ca3af;
             margin-left: 12px;
@@ -140,7 +135,7 @@
 <div id="workspace">
     
     <div class="time-display">
-        <span id="time-digits">00:00</span><span id="sec-digits">00</span>
+        <span id="time-digits">--:--</span><span id="sec-digits">00</span>
     </div>
 
     <div class="metrics-list">
@@ -170,16 +165,13 @@
 </div>
 
 <script>
-    let currentMode = localStorage.getItem('terminal_mode') || "home"; // Remembers last picked mode on reload
-    let homeZip = localStorage.getItem('terminal_home_zip');
+    let currentMode = localStorage.getItem('terminal_mode') || "home"; 
+    let homeZip = localStorage.getItem('terminal_home_zip') || "94505";
     let isZenActive = false;
 
-    if (!homeZip) {
-        homeZip = "94505";
-        localStorage.setItem('terminal_home_zip', homeZip);
-    }
+    localStorage.setItem('terminal_home_zip', homeZip);
 
-    // Clear Workspace Toggle: Masks the control line completely out of view when background is clicked
+    // Dynamic Blank Screen Tap Shield
     function toggleZenDisplay() {
         isZenActive = !isZenActive;
         const workspace = document.getElementById("workspace");
@@ -190,6 +182,7 @@
         }
     }
 
+    // Main Clock Engine - Runs completely independently from data paths to prevent freeze arrays
     function tick() {
         const now = new Date();
         let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
@@ -205,10 +198,8 @@
         }
     }
 
-    // Handles switching between Home and Local GPS tracking within the single bottom line
     function toggleTrackingMode(event) {
-        if (event) event.stopPropagation(); // Prevent background click from firing zen mask
-        
+        if (event) event.stopPropagation(); 
         currentMode = (currentMode === "home") ? "local" : "home";
         localStorage.setItem('terminal_mode', currentMode);
         
@@ -216,7 +207,6 @@
         updateAtmosphereFeed();
     }
 
-    // Renders the correct text options onto the unified single-line footer row
     function renderControlBar() {
         const statusStr = document.getElementById("status-string");
         const toggleBtn = document.getElementById("toggle-action");
@@ -229,12 +219,12 @@
         } else {
             statusStr.innerText = "STATION: LOCAL";
             toggleBtn.innerText = "[SWITCH TO HOME]";
-            editBtn.style.display = "none"; // Hide edit link when relying on live raw GPS coordinates
+            editBtn.style.display = "none";
         }
     }
 
     function editHomeZip(event) {
-        if (event) event.stopPropagation(); // Block layout structure click bubbling
+        if (event) event.stopPropagation();
         const res = prompt("Enter 5-Digit HOME Base ZIP Code:", homeZip);
         if (res && res.length === 5 && !isNaN(res)) {
             homeZip = res;
@@ -253,17 +243,13 @@
 
     async function fetchHomeWeather() {
         try {
-            document.getElementById("data-cond").innerText = "Syncing Home...";
+            document.getElementById("data-cond").innerText = "Syncing...";
             const geoRes = await fetch(`https://api.zippopotam.us/us/${homeZip}`);
             if (!geoRes.ok) throw new Error();
             const geoData = await geoRes.json();
-            
-            const lat = geoData.places[0].latitude;
-            const lon = geoData.places[0].longitude;
-            
-            fetchRadarMetrics(lat, lon);
+            fetchRadarMetrics(geoData.places[0].latitude, geoData.places[0].longitude);
         } catch {
-            document.getElementById("data-cond").innerText = "Location Error";
+            document.getElementById("data-cond").innerText = "Offline/Local Error";
         }
     }
 
@@ -272,16 +258,10 @@
             document.getElementById("data-cond").innerText = "No GPS Capability";
             return;
         }
-
         document.getElementById("data-cond").innerText = "Searching Satellites...";
-
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                fetchRadarMetrics(position.coords.latitude, position.coords.longitude);
-            },
-            () => {
-                document.getElementById("data-cond").innerText = "GPS Banned";
-            },
+            (position) => { fetchRadarMetrics(position.coords.latitude, position.coords.longitude); },
+            () => { document.getElementById("data-cond").innerText = "GPS Access Denied"; },
             { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 }
         );
     }
@@ -304,9 +284,8 @@
             document.getElementById("data-cond").innerText = wmoCodes[current.weather_code] || "Clear Sky ☀️";
             document.getElementById("data-humid").innerText = `${current.relative_humidity_2m}%`;
             document.getElementById("data-baro").innerText = `${hpaToInches} IN`;
-
-        } catch (err) {
-            document.getElementById("data-cond").innerText = "Server Timeout";
+        } catch {
+            document.getElementById("data-cond").innerText = "API Feed Timeout";
         }
     }
 
