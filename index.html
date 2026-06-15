@@ -68,7 +68,7 @@
             letter-spacing: -3px;
         }
         #time-digits {
-            font-size: calc(5.5rem + 2vw); /* High scale expansion priority */
+            font-size: calc(5.5rem + 2vw);
             color: #ffffff;
             line-height: 0.95;
         }
@@ -80,20 +80,7 @@
             letter-spacing: 0;
         }
 
-        /* Restored Temperature Formatting Block */
-        .metric-item.main-temp {
-            border-bottom: 1px solid #1f2937;
-            padding-bottom: 8px;
-            margin-bottom: 2px;
-        }
-        .m-val.highlight {
-            color: #ff00ff;
-            text-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
-            font-size: 1.6rem;
-            font-weight: 500;
-        }
-
-        /* Highly Compacted Atmospheric Secondary Rows */
+        /* Highly Compacted Atmospheric Rows */
         .metrics-list {
             display: flex;
             flex-direction: column;
@@ -115,6 +102,10 @@
         .m-val {
             font-size: 1.2rem;
             font-weight: 400;
+        }
+        .m-val.highlight {
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
         }
         .m-val.accent {
             color: #00ff66;
@@ -189,7 +180,7 @@
     </div>
 
     <div class="metrics-list">
-        <div class="metric-item main-temp">
+        <div class="metric-item">
             <div class="m-label">Temperature</div>
             <div class="m-val highlight" id="data-temp">--°F</div>
         </div>
@@ -215,140 +206,4 @@
 <script>
     let currentMode = "home"; 
     let homeZip = localStorage.getItem('terminal_home_zip');
-    let footerVisible = true;
-
-    if (!homeZip) {
-        homeZip = "94505";
-        localStorage.setItem('terminal_home_zip', homeZip);
-    }
-
-    // Toggle the configuration link on/off when workspace is tapped
-    function toggleConfigDisplay() {
-        if (currentMode === "local") return; // Keep clean if running on auto GPS tracking anyway
-        
-        footerVisible = !footerVisible;
-        const footer = document.getElementById("config-footer");
-        if (footerVisible) {
-            footer.classList.remove("hidden");
-        } else {
-            footer.classList.add("hidden");
-        }
-    }
-
-    function tick() {
-        const now = new Date();
-        let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-        
-        h = h % 12; h = h ? h : 12;
-        m = m < 10 ? '0' + m : m; s = s < 10 ? '0' + s : s;
-
-        document.getElementById("time-digits").innerText = `${h}:${m}`;
-        document.getElementById("sec-digits").innerText = s;
-
-        if (m === 0 && s === 0) {
-            updateAtmosphereFeed();
-        }
-    }
-
-    function switchStation(targetMode, event) {
-        if (event) event.stopPropagation(); // Stop background trigger firing toggles
-        if (currentMode === targetMode) return;
-        currentMode = targetMode;
-
-        document.getElementById("btn-home").classList.toggle("active", currentMode === "home");
-        document.getElementById("btn-local").classList.toggle("active", currentMode === "local");
-        
-        const footer = document.getElementById("config-footer");
-        if (currentMode === "local") {
-            footer.classList.add("hidden");
-        } else if (footerVisible) {
-            footer.classList.remove("hidden");
-        }
-        
-        updateAtmosphereFeed();
-    }
-
-    function editHomeZip(event) {
-        if (event) event.stopPropagation(); // Protect visibility configuration loops
-        const res = prompt("Enter 5-Digit HOME Base ZIP Code:", homeZip);
-        if (res && res.length === 5 && !isNaN(res)) {
-            homeZip = res;
-            localStorage.setItem('terminal_home_zip', homeZip);
-            if (currentMode === "home") updateAtmosphereFeed();
-        }
-    }
-
-    function updateAtmosphereFeed() {
-        if (currentMode === "home") {
-            fetchHomeWeather();
-        } else {
-            fetchGpsLocalWeather();
-        }
-    }
-
-    async function fetchHomeWeather() {
-        try {
-            document.getElementById("data-cond").innerText = "Syncing Home...";
-            const geoRes = await fetch(`https://api.zippopotam.us/us/${homeZip}`);
-            if (!geoRes.ok) throw new Error();
-            const geoData = await geoRes.json();
-            
-            const lat = geoData.places[0].latitude;
-            const lon = geoData.places[0].longitude;
-            
-            fetchRadarMetrics(lat, lon);
-        } catch {
-            document.getElementById("data-cond").innerText = "Home Address Error";
-        }
-    }
-
-    function fetchGpsLocalWeather() {
-        if (!navigator.geolocation) {
-            document.getElementById("data-cond").innerText = "No GPS Capability";
-            return;
-        }
-
-        document.getElementById("data-cond").innerText = "Searching Satellites...";
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                fetchRadarMetrics(position.coords.latitude, position.coords.longitude);
-            },
-            () => {
-                document.getElementById("data-cond").innerText = "GPS Tracking Banned";
-            },
-            { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 }
-        );
-    }
-
-    async function fetchRadarMetrics(lat, lon) {
-        try {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code&temperature_unit=fahrenheit`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const current = data.current;
-
-            const wmoCodes = {
-                0: "Clear Sky ☀️", 1: "Mainly Clear 🌤️", 2: "Partly Cloudy ⛅", 3: "Overcast ☁️",
-                45: "Foggy 🌫️", 51: "Light Drizzle 🌧️", 61: "Slight Rain 🌧️", 63: "Moderate Rain 🌧️",
-                65: "Heavy Rain 🌧️", 71: "Slight Snow ❄️", 80: "Rain Showers 🌦️", 95: "Thunderstorm 🌩️"
-            };
-
-            const hpaToInches = (current.surface_pressure * 0.02953).toFixed(2);
-            document.getElementById("data-temp").innerText = `${Math.round(current.temperature_2m)}°F`;
-            document.getElementById("data-cond").innerText = wmoCodes[current.weather_code] || "Clear Sky ☀️";
-            document.getElementById("data-humid").innerText = `${current.relative_humidity_2m}%`;
-            document.getElementById("data-baro").innerText = `${hpaToInches} IN`;
-
-        } catch (err) {
-            document.getElementById("data-cond").innerText = "Server Timeout";
-        }
-    }
-
-    setInterval(tick, 1000);
-    tick();
-    updateAtmosphereFeed();
-</script>
-
-</body>
-</html>
+    let footerVisible
